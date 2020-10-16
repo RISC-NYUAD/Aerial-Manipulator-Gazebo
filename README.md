@@ -23,4 +23,6 @@ roslaunch Aerial-Manipulator-Gazebo robot_teleop.launch
 ```
 to send discreet joint angle commands to the robot
 
+* Run `roslaunch Aerial-Manipulator-Gazebo pick_weight.launch` and use the UAV and Robot teleoperators to try your hand at a weight-picking scenario using the Aerial Manipulator
+ 
 * For expanded usage, we suggest downloading and installing the [Kinova](https://github.com/Kinovarobotics/kinova-ros) packages, for more robot descriptions and functionalities 
