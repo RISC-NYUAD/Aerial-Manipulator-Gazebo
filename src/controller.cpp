@@ -386,24 +386,6 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 
 		double Kix=0.2;	double Kiy=0.2;	double Kiz=0.3;
 
-/*		double constU1 = mass/(cos(phi)*cos(theta));
-		double z7 = z - zdes;
-		double p7 = integral(z7,prev_Perr(2));		
-		double z8star = zddes - Kpz*z7;
-		double z8 = z_d - z8star;
-		double U1 =   constU1*(grav - Kpz*(z8 - Kpz*z7) - z7 - Kdz*z8);    
-
-
-		double z9 = x - xdes;
-		double z10star = xddes - Kpx*z9;
-		double z10 = x_d - z10star;
-		double ux = (mass/U1)*(-Kpx*(z10 - Kpx*z9) -z9 -Kdx*z10);
-		
-		double z11 = y - ydes;
-		double z12star = yddes - Kpy*z11;
-		double z12 = y_d - z12star;
-		double uy = (mass/U1)*(-Kpy*(z12 - Kpx*z11) -z11 - Kdy*z12);
-*/
 		double constU1 = mass/(cos(phi)*cos(theta));
 		double e5 = zdes - z;
 		double p5 = integral(e5,prev_Perr(2));
