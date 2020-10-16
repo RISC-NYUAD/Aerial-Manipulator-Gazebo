@@ -1,0 +1,81 @@
+<launch>
+  <arg name="mav_name" default="harrierD7"/>
+  <arg name="kinova_robotType" default="j2s7s300"/>
+  <arg name="kinova_robotName" default="$(arg kinova_robotType)"/>
+  <arg name="is7dof" default="true"/>
+  <arg name="use_trajectory_controller" default="true"/>
+  <arg name="world_name" default="pick_weight"/>
+  <arg name="enable_logging" default="false" />
+  <arg name="enable_ground_truth" default="true" />
+  <arg name="log_file" default="$(arg mav_name)" />
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" default="true"/>
+  <!-- The following line causes gzmsg and gzerr messages to be printed to the console
+      (even when Gazebo is started through roslaunch) -->
+  <arg name="verbose" default="false"/>
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find aerial_manipulation)/meshes"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+  	<arg name="world_name" value="$(find aerial_manipulation)/worlds/$(arg world_name).world" />
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="paused" value="$(arg paused)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="verbose" value="$(arg verbose)"/>
+  </include>
+  <rosparam file="$(find aerial_manipulation)/config/$(arg kinova_robotName)_control.yaml" command="load"/>
+
+  <group ns="$(arg mav_name)">
+    <include file="$(find aerial_manipulation)/launch/spawn_mav.launch">
+      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="model" value="$(find aerial_manipulation)/urdf/mav_generic_odometry_sensor.gazebo" />
+      <arg name="enable_logging" value="$(arg enable_logging)" />
+      <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
+      <arg name="log_file" value="$(arg log_file)"/>
+      <arg name="x" value="0.0"/>
+	  <arg name="y" value="0.0"/>
+	  <arg name="z" value="0.495"/>
+      <arg name="load_manipulator" value="1" />
+      <arg name="with_landing_gear" value="1"/>
+      <arg name="desired_x" value="0.0"/>
+      <arg name="desired_y" value="0.0"/>
+	  <arg name="desired_z" value="2.1"/>
+    </include>
+<!--
+	<include file="$(find kinova_control)/launch/kinova_control.launch">
+    	<arg name="kinova_robotName" value="$(arg kinova_robotName)"/>
+    	<arg name="kinova_robotType" value="$(arg kinova_robotType)"/>
+    	<arg name="use_trajectory_controller" value="$(arg use_trajectory_controller)"/>
+    	<arg name="is7dof" value="$(arg is7dof)"/>
+    </include>
+-->
+<!--
+	<node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/lee_controller_$(arg mav_name).yaml" />
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/$(arg mav_name).yaml" />
+      <remap from="odometry" to="odometry_sensor1/odometry" />
+    </node>
+
+	<node name="my_talker" output="screen" pkg="common_nodes" type="my_talker_node"/>
+-->
+
+<!--
+    <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+
+	<node name="link_reader" output="screen" pkg="common_nodes" type="my_link_node" args="$(arg mav_name)"/>
+-->
+
+  </group>
+
+
+  
+ 
+    
+  
+
+
+</launch>

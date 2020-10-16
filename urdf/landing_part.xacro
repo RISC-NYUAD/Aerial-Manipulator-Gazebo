@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<xacro:property name="PI" value="3.1415926535897931"/>
+	<xacro:property name="height" value="0.45"/>
+	<xacro:property name="length" value="${height/0.9396926207859084}"/>
+	<xacro:property name="small_width" value="0.15"/>
+	<xacro:property name="big_width" value="${small_width+2*(length*0.3420201433256687)}"/>
+	<xacro:property name="y_fat" value="0.03"/>
+	<xacro:property name="z_fat" value="0.03"/>
+
+	<xacro:macro name="boxs_inertia" params="xl yl zl mass">
+		<inertia ixx="${(1/12)*mass*(yl*yl + zl*zl)}" ixy="0.0" ixz="0.0" 
+				 iyy="${(1/12)*mass*(xl*xl + zl*zl)}" iyz="0.0" 
+				 izz="${(1/12)*mass*(xl*xl + yl*yl)}" />
+	</xacro:macro>
+
+
+	<xacro:macro name="landing_parts" params="name xl yl zl mass *origin *inertia *color">
+		<link name="${name}">
+			<visual>
+				<xacro:insert_block name="origin"/>
+				<geometry>
+					<box size="${xl} ${yl} ${zl}"/>
+				</geometry>
+			</visual>
+			<collision>
+				<xacro:insert_block name="origin"/>
+				<geometry>
+					<box size="${xl} ${yl} ${zl}"/>
+				</geometry>
+			</collision>
+			<inertial>
+				<xacro:insert_block name="origin"/>
+				<mass value="${mass}"/>
+				<xacro:insert_block name="inertia"/>
+			</inertial>
+		</link>
+		<gazebo reference="${name}">
+			<xacro:insert_block name="color"/>
+		</gazebo>
+	</xacro:macro>
+	
+	<xacro:macro name="landing_gear" params="number">
+		<xacro:landing_parts name="gear${number}_part1" xl="${small_width}" yl="${y_fat}" zl="${z_fat}" mass="${0.2*(y_fat+z_fat+small_width)}">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<xacro:boxs_inertia xl="${small_width/2}" yl="${y_fat/2}" zl="${z_fat/2}" mass="${0.1*(y_fat+z_fat+small_width)}"/>
+			<material>Gazebo/Black</material>
+		</xacro:landing_parts>
+
+		<xacro:landing_parts name="gear${number}_part2" xl="${length}" yl="${y_fat}" zl="${z_fat}" mass="${0.2*(y_fat+z_fat+length)}">
+			<origin xyz="${length/2} 0 0" rpy="0 0 0"/>
+			<xacro:boxs_inertia xl="${length/2}" yl="${y_fat/2}" zl="${z_fat/2}" mass="${0.1*(y_fat+z_fat+length)}"/>
+			<material>Gazebo/Black</material>
+		</xacro:landing_parts>
+
+		<xacro:landing_parts name="gear${number}_part3" xl="${big_width}" yl="${y_fat}" zl="${z_fat}" mass="${0.2*(y_fat+z_fat+big_width)}">
+			<origin xyz="${(big_width/2) - (z_fat/2)} 0 ${z_fat/2}" rpy="0 0 0"/>
+			<xacro:boxs_inertia xl="${big_width/2}" yl="${y_fat/2}" zl="${z_fat/2}" mass="${0.1*(y_fat+z_fat+big_width)}"/>
+			<material>Gazebo/Black</material>
+		</xacro:landing_parts>
+		
+		<xacro:landing_parts name="gear${number}_part4" xl="${length}" yl="${y_fat}" zl="${z_fat}" mass="${0.2*(y_fat+z_fat+length)}">
+			<origin xyz="${length/2} 0 0" rpy="0 0 0"/>
+			<xacro:boxs_inertia xl="${length/2}" yl="${y_fat/2}" zl="${z_fat/2}" mass="${0.1*(y_fat+z_fat+length)}"/>
+			<material>Gazebo/Black</material>
+		</xacro:landing_parts>
+
+		<joint name="gear${number}_conn1" type="fixed">
+			<parent link="gear${number}_part1"/>
+			<child link="gear${number}_part2"/>
+			<origin xyz="${(small_width/2) - (z_fat/2)} 0 -${z_fat/2}" rpy="0 ${(PI/2) - (20*PI/180)} 0"/>
+			<axis xyz="0 0 1"/>
+			<limit effort="100" velocity="1" lower="0" upper="0"/>
+		</joint>
+
+		<joint name="gear${number}_conn2" type="fixed">
+			<parent link="gear${number}_part2"/>
+			<child link="gear${number}_part3"/>
+			<origin xyz="${length} 0 0" rpy="0 ${(PI/2) + (20*PI/180)} 0"/>
+			<axis xyz="0 0 1"/>
+			<limit effort="100" velocity="1" lower="0" upper="0"/>
+		</joint>
+
+		<joint name="gear${number}_conn3" type="fixed">
+			<parent link="gear${number}_part3"/>
+			<child link="gear${number}_part4"/>
+			<origin xyz="${big_width - z_fat} 0 0" rpy="0 ${(PI/2) + (20*PI/180)} 0"/>
+			<axis xyz="0 0 1"/>
+			<limit effort="100" velocity="1" lower="0" upper="0"/>
+		</joint>
+
+	</xacro:macro>
+
+
+	<xacro:landing_gear number="1"/>
+	<xacro:landing_gear number="2"/>
+
+
+</robot>

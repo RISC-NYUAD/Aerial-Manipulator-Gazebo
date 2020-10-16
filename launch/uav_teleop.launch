@@ -1,0 +1,17 @@
+<launch>
+	<node name="my_key_teleoper" output="screen" pkg="aerial_manipulation" type="harrier_tele" args="/harrierD7"/>
+	
+		<!--
+		Instructions: call the teleoperator on its own terminal, with "roslaunch aerial_manipulation uav_teleop.launch"
+					- Keyboard use:
+						Right-Left keys:  Yaw Orientation
+						Up-Down keys   :  Vehicle Altitude
+						w - s   keys   :  World-Frame X Position
+						a - d   keys   :  World-Frame Y Position
+		IMPORTANT:
+				To close the teleoperator, press the 'q' key. This way you can close the teleoperator and keep keyboard access to that terminal window.
+				Simply pressing Ctrl+C will either not work, or you will have to also close the window, as keyboard access is lost with the teleoperator
+	
+	-->
+
+</launch>

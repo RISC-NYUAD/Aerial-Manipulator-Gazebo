@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!--  manipulator arms begin here 
+								-->
+
+	<xacro:property name="PI" value="3.1415926535897931"/>
+
+	<xacro:include filename="$(find urdf_sandbox)/urdf/landing_part.xacro"/>
+	
+	<xacro:macro name="cylinder_inertia" params="radius length mass">
+		<inertia ixx="${0.25*mass*radius*radius + (1/12)*mass*length*length}" ixy="0.0" ixz="0.0" 
+				 iyy="${0.25*mass*radius*radius + (1/12)*mass*length*length}" iyz="0.0" 
+				 izz="${0.5*mass*radius*radius}" />
+	</xacro:macro>
+
+
+	<joint name="${namespace}/land1_joint" type="revolute">
+		<parent link="${namespace}/base_link"/>
+		<child link="gear1_part1"/>
+		<origin xyz="0.1 0 0" rpy="-0.1745 0 ${PI/2}"/>
+		<axis xyz="1 0 0"/>
+		<limit effort="100" velocity="1" lower="-1.38" upper="0"/>
+	</joint>
+
+	<joint name="${namespace}/land2_joint" type="revolute">
+		<parent link="${namespace}/base_link"/>
+		<child link="gear2_part1"/>
+		<origin xyz="-0.1 0 0" rpy="0.1745 0 ${PI/2}"/>
+		<axis xyz="1 0 0"/>
+		<limit effort="100" velocity="1" lower="0" upper="1.38"/>
+	</joint>
+
+
+	<transmission name="land1_transmission">
+		<type>transmission_interface/SimpleTransmission</type>
+		<joint name="${namespace}/land1_joint">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+		</joint>
+		<actuator name="motor1">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+	</transmission>
+
+	<transmission name="land2_transmission">
+		<type>transmission_interface/SimpleTransmission</type>
+		<joint name="${namespace}/land2_joint">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+		</joint>
+		<actuator name="motor2">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+	</transmission>
+	
+	
+	<gazebo>
+		<plugin name="joint_pub_sensor" filename="libjoint_pub.so">
+			<nameSpace>${namespace}</nameSpace>
+		</plugin>
+	</gazebo>
+
+
+
+
+</robot>

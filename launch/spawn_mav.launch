@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="mav_name" default="harrierD7"/>
+  <arg name="namespace" default="$(arg mav_name)"/>
+  <arg name="model" default="$(find aerial_manipulation)/urdf/$(arg mav_name)_base.xacro"/>
+  <arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.1"/>
+  <arg name="enable_logging" default="false"/>
+  <arg name="enable_ground_truth" default="true"/>
+  <arg name="log_file" default="$(arg mav_name)"/>
+  <arg name="wait_to_record_bag" default="false"/>
+  <arg name="enable_mavlink_interface" default="false"/>
+  <arg name="load_manipulator" default="0" />
+  <arg name="with_landing_gear" default="0" />
+  <arg name="desired_x" default="0.0" />
+  <arg name="desired_y" default="0.0" />
+  <arg name="desired_z" default="0.0" />
+  <arg name="kinova_robotType" default="j2s7s300"/>
+
+
+  <!-- send the robot XML to param server -->
+  <param name="robot_description" command="
+    $(find xacro)/xacro.py '$(arg model)'
+    enable_logging:=$(arg enable_logging)
+    enable_ground_truth:=$(arg enable_ground_truth)
+    enable_mavlink_interface:=$(arg enable_mavlink_interface)
+    log_file:=$(arg log_file)
+    wait_to_record_bag:=$(arg wait_to_record_bag)
+    mav_name:=$(arg mav_name)
+    namespace:=$(arg namespace)
+	load_manipulator:=$(arg load_manipulator)
+	with_landing_gear:=$(arg with_landing_gear)
+	desired_x:=$(arg desired_x)
+	desired_y:=$(arg desired_y)
+	desired_z:=$(arg desired_z)"
+  />
+  <param name="tf_prefix" type="string" value="$(arg tf_prefix)" />
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_$(arg namespace)" pkg="gazebo_ros" type="spawn_model"
+   args="-param robot_description
+         -urdf
+         -x $(arg x)
+         -y $(arg y)
+         -z $(arg z)
+         -model $(arg namespace)
+		 -J $(arg kinova_robotType)_joint_1 1.57
+         -J $(arg kinova_robotType)_joint_2 1.57
+         -J $(arg kinova_robotType)_joint_3 0.0
+         -J $(arg kinova_robotType)_joint_4 4.71
+         -J $(arg kinova_robotType)_joint_5 0.0
+         -J $(arg kinova_robotType)_joint_6 4.71
+         -J $(arg kinova_robotType)_joint_7 0.0
+         -J $(arg kinova_robotType)_joint_finger_1 1.0
+         -J $(arg kinova_robotType)_joint_finger_2 1.0
+         -J $(arg kinova_robotType)_joint_finger_3 1.0	"
+   respawn="false" output="screen">
+  </node>
+</launch>

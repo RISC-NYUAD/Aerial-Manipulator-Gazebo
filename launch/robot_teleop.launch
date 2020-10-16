@@ -1,0 +1,20 @@
+<launch>
+	<node name="kinova_harr_teleoper" output="screen" pkg="aerial_manipulation" type="kinova_tele" args="/harrierD7"/>
+	<!--
+		Instructions: call the teleoperator on its own terminal, with "roslaunch aerial_manipulation robot_teleop.launch"
+					- Keyboard use:
+						Right-Left keys:  Joint 1 angle
+						Up-Down keys   :  Joint 2 angle
+						w - s   keys   :  Joint 3 angle
+						a - d   keys   :  Joint 4 angle
+						o - p   keys   :  Joint 5 angle
+						k - l   keys   :  Joint 6 angle
+						n - m   keys   :  Joint 7 angle
+						1 - 2   keys   :  Open - Close gripper
+		IMPORTANT:
+				To close the teleoperator, press the 'q' key. This way you can close the teleoperator and keep keyboard access to that terminal window.
+				Simply pressing Ctrl+C will either not work, or you will have to also close the window, as keyboard access is lost with the teleoperator
+	
+	-->
+	
+</launch>
