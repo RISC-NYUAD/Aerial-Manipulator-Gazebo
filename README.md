@@ -15,13 +15,13 @@ The aerial manipulator consists of the HarrierD7 Vulcan UAV and the [Kinova](htt
 ```
 roslaunch Aerial-Manipulator-Gazebo uav_teleop.launch
 ```
-to send discreet position and yaw orientation commands to the UAV
+to send discrete position and yaw orientation commands to the UAV
 
 * In another terminal, run
 ```
 roslaunch Aerial-Manipulator-Gazebo robot_teleop.launch
 ```
-to send discreet joint angle commands to the robot
+to send discrete joint angle commands to the robot
 
 * Run `roslaunch Aerial-Manipulator-Gazebo pick_weight.launch` and use the UAV and Robot teleoperators to try your hand at a realistic weight-lifting scenario using the Aerial Manipulator
  
