@@ -8,7 +8,8 @@ The aerial manipulator consists of the HarrierD7 Vulcan UAV and the [Kinova](htt
 
 1. First of all, download and install the [RotorS Simulator](https://github.com/ethz-asl/rotors_simulator) in your workspace, preferably using `catkin_make`
 2. Clone this repository to your workspace and run `catkin_make` once again
-3. Run `roslaunch Aerial-Manipulator-Gazebo aerial_manipulator.launch` to test the default system
+3. Make sure you have downloaded [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). If your install folder for the Eigen headers is not `usr/include/eigen3` you will need to edit the `CMakeList.txt` file
+4. Run `roslaunch Aerial-Manipulator-Gazebo aerial_manipulator.launch` to test the default system
 
 ### Further usage
 * In a new terminal, run
