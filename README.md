@@ -11,6 +11,8 @@ The aerial manipulator consists of the HarrierD7 Vulcan UAV and the [Kinova](htt
 3. Clone this repository to your workspace and run `catkin_make` once again
 4. Run `roslaunch Aerial-Manipulator-Gazebo aerial_manipulator.launch` to test the default system
 
+![Screenshot](https://imgur.com/a/3beZpKW.jpg)
+
 ### Further usage
 * In a new terminal, run
 ```
