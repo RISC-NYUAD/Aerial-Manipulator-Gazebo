@@ -153,7 +153,6 @@
         <robotNamespace>${robot_namespace}</robotNamespace>
         <jointName>${robot_namespace}/rotor_${motor_number}_joint</jointName>
         <linkName>${robot_namespace}/rotor_${motor_number}</linkName>
-        <isUpside>${isUpside}</isUpside>
         <turningDirection>${direction}</turningDirection>
         <timeConstantUp>${time_constant_up}</timeConstantUp>
         <timeConstantDown>${time_constant_down}</timeConstantDown>
