@@ -47,12 +47,12 @@
          -y $(arg y)
          -z $(arg z)
          -model $(arg namespace)
-		 -J $(arg kinova_robotType)_joint_1 1.57
+         -J $(arg kinova_robotType)_joint_1 1.57
          -J $(arg kinova_robotType)_joint_2 1.57
          -J $(arg kinova_robotType)_joint_3 0.0
-         -J $(arg kinova_robotType)_joint_4 4.71
+         -J $(arg kinova_robotType)_joint_4 3
          -J $(arg kinova_robotType)_joint_5 0.0
-         -J $(arg kinova_robotType)_joint_6 4.71
+         -J $(arg kinova_robotType)_joint_6 1.57
          -J $(arg kinova_robotType)_joint_7 0.0
          -J $(arg kinova_robotType)_joint_finger_1 1.0
          -J $(arg kinova_robotType)_joint_finger_2 1.0
