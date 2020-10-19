@@ -14,6 +14,7 @@ cd ~/catkin_ws/src
 git clone git@github.com:RISC-NYUAD/Aerial-Manipulator-Gazebo.git
 ```
 and run `catkin_make` or `catkin build` once again
+
 4. Run `roslaunch aerial_manipulation aerial_manipulator.launch` to test the default system
 
 ![Screenshot](aerial_manip.png)
