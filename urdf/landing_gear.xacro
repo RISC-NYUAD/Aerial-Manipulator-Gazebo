@@ -56,7 +56,7 @@
 	
 	
 	<gazebo>
-		<plugin name="joint_pub_sensor" filename="libjoint_pub.so">
+		<plugin name="joint_pub_sensor" filename="libgear_pub.so">
 			<nameSpace>${namespace}</nameSpace>
 		</plugin>
 	</gazebo>
