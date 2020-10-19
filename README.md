@@ -36,3 +36,15 @@ to send discrete joint angle commands to the robot
  
 * For expanded usage, we suggest downloading and installing the [Kinova](https://github.com/Kinovarobotics/kinova-ros) packages, for more robot descriptions and functionalities 
 * Has been test for Gazebo 7
+
+If you use this package, with the provided adaptive controller, in your research, feel free to cite:
+```
+@INPROCEEDINGS{9213920,
+  author={D. {Chaikalis} and F. {Khorrami} and A. {Tzes}},
+  booktitle={2020 International Conference on Unmanned Aircraft Systems (ICUAS)}, 
+  title={Adaptive Control Approaches for an Unmanned Aerial Manipulation System}, 
+  year={2020},
+  volume={},
+  number={},
+  pages={498-503},}
+```
