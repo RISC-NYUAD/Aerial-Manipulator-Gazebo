@@ -127,14 +127,6 @@ public:	void onUpdate()
 			prev_time = 0;
 		}
 		
-		if(!system_armed){
-			if(time>1){
-				system_armed = 1;
-				std::cout << "\nAll Systems Ready... \n   Initiating Take-Off" << std::endl;
-				std::cout << "\nTeleoperation Services have been temporarily disabled" << std::endl;
-			}
-		}		
-		
 		
 		// GET THE POINTER TO THE AERIAL VEHICLE BODY  //
 		physics::LinkPtr  quad = this->model->GetLink(linkName);
@@ -179,6 +171,13 @@ public:	void onUpdate()
 		gazebo::math::Vector3 position = pose.pos;
 		gazebo::math::Quaternion quatern = pose.rot;
 
+		if(!system_armed){
+			if(my_abs(foundpose.robot_q(3)-q_desired(3))<1e-1){
+				system_armed = 1;
+				std::cout << "\nAll Systems Ready... \n   Initiating Take-Off" << std::endl;
+				std::cout << "\nTeleoperation Services have been temporarily disabled" << std::endl;
+			}
+		}		
 		
 		foundpose.position = Eigen::Vector3d(position.x , position.y , position.z);	
 
