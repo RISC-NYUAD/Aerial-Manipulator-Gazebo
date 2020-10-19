@@ -26,6 +26,9 @@ catkin_package(
 add_library(control_plugin SHARED src/controller.cpp)
 target_link_libraries(control_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
+add_library(gear_pub SHARED src/gear_joint_sensor.cpp)
+target_link_libraries(gear_pub ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+
 add_executable(kinova_tele src/robot_teleop_node.cpp)
 target_link_libraries(kinova_tele ${catkin_LIBRARIES} gazebo_math gazebo_common)
 
