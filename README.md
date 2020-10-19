@@ -39,12 +39,12 @@ to send discrete joint angle commands to the robot
 
 If you use this package, with the provided adaptive controller, in your research, feel free to cite:
 ```
-@INPROCEEDINGS{9213920,
-  author={D. {Chaikalis} and F. {Khorrami} and A. {Tzes}},
-  booktitle={2020 International Conference on Unmanned Aircraft Systems (ICUAS)}, 
-  title={Adaptive Control Approaches for an Unmanned Aerial Manipulation System}, 
+@inproceedings{chaikalis2020adaptive,
+  title={Adaptive Control Approaches for an Unmanned Aerial Manipulation System},
+  author={Chaikalis, Dimitris and Khorrami, Farshad and Tzes, Anthony},
+  booktitle={2020 International Conference on Unmanned Aircraft Systems (ICUAS)},
+  pages={498--503},
   year={2020},
-  volume={},
-  number={},
-  pages={498-503},}
+  organization={IEEE}
+}
 ```
