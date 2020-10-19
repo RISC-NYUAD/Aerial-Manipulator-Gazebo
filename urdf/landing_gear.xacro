@@ -6,7 +6,7 @@
 
 	<xacro:property name="PI" value="3.1415926535897931"/>
 
-	<xacro:include filename="$(find urdf_sandbox)/urdf/landing_part.xacro"/>
+	<xacro:include filename="$(find aerial_manipulation)/urdf/landing_part.xacro"/>
 	
 	<xacro:macro name="cylinder_inertia" params="radius length mass">
 		<inertia ixx="${0.25*mass*radius*radius + (1/12)*mass*length*length}" ixy="0.0" ixz="0.0" 
