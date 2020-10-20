@@ -1,3 +1,9 @@
+/*
+   Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
+     loosely based on the turtlesim package keyboard teleoperators
+*/
+
+
 #include <iostream>
 #include <termios.h>
 #include <stdio.h>
