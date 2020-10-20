@@ -15,7 +15,8 @@ git clone git@github.com:RISC-NYUAD/Aerial-Manipulator-Gazebo.git
 ```
 and run `catkin_make` or `catkin build` once again
 
-4. Run `roslaunch aerial_manipulation aerial_manipulator.launch` to test the default system
+4. Run `roslaunch aerial_manipulation aerial_manipulator.launch` to test the default system.
+After pressing play, you should see the Kinova assume its home position, then the UAV taking off, retracting the landing gear and hovering.
 
 ![Screenshot](aerial_manip.png)
 
