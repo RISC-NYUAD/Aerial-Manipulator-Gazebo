@@ -1,3 +1,9 @@
+/*
+   Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
+   Gazebo plugin, implementing adaptive control of the entire aerial manipulator
+*/
+
+
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
