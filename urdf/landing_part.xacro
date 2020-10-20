@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+<!--  Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
+								-->
+
 	<xacro:property name="PI" value="3.1415926535897931"/>
 	<xacro:property name="height" value="0.45"/>
 	<xacro:property name="length" value="${height/0.9396926207859084}"/>
