@@ -170,7 +170,6 @@ public:	void onUpdate()
 			foundpose.robot_q = angs;
 			foundpose.robot_qdot = angd;
 		}		
-		// GET THE POSITION, ORIENTATION, ANGULAR-VELOCITY AND LINEAR-VELOCITY OF THE QUADROTOR  //
 		gazebo::math::Pose pose = quad->GetWorldPose();  		
 		gazebo::math::Vector3 ang_vel = quad->GetRelativeAngularVel();	
 		gazebo::math::Vector3 lin_vel = quad->GetRelativeLinearVel();			
