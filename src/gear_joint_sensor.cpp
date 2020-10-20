@@ -1,3 +1,9 @@
+/*
+   Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
+   Simple plugin, publishing the state of the Landing Gear motors
+*/
+
+
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
