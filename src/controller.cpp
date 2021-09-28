@@ -72,8 +72,7 @@ public: void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 		take_off_complete = 0;
 		landing_gear_retracted = 0;
 
-		Eigen::VectorXd temp(7), tester(7);
-		tester << 0,2.8,0.4,3.14,0.2,3.6,0.6 ;
+		Eigen::VectorXd temp(7);
 		temp << 1.57,1.7,0,4.4,0,4.71,0 ;
 		q_desired = temp;
 		temp << 0,0,0,0,0,0,0 ;
@@ -369,12 +368,6 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 		phiddes = 0;			    thetaddes = 0;				psiddes = desiredState[7];	
 
 		//  constants //
-		double m_manip;
-		if(manipulator_bool)
-			m_manip = 5.5;
-		else
-			m_manip = 0.0;
-		double mass = 14.7 + 0.095 + m_manip;  // mass of each rotor is 0.01 plus mass of the IMU which is 0.015 
 		double grav = 9.81;
 		double Ixx=1.57;	double Iyy=3.93;	double Izz=2.59;
 		double xlen = 0.53; double ylen = 0.57;
@@ -390,7 +383,6 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 
 		double Kix=0.2;	double Kiy=0.2;	double Kiz=0.3;
 
-		double constU1 = mass/(cos(phi)*cos(theta));
 		double e5 = zdes - z;
 		double p5 = integral(e5,prev_Perr(2));
 		double e6 = Kpz*e5 + zddes + Kiz*p5 - z_d;
