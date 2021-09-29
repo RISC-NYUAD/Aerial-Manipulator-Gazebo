@@ -1,27 +1,27 @@
+/*
+   Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
+   Gazebo plugin, implementing adaptive control of the entire aerial manipulator
+*/
+
+
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
 #include <gazebo/common/common.hh>
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
 #include <mav_msgs/Actuators.h>
 #include <iostream>
-#include <random>
-#include <fstream>
-#include <Eigen/StdVector>
 #include <string>
 #include <Eigen/Dense>
 #include <sensor_msgs/JointState.h>
-#include <gazebo_msgs/ContactsState.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Twist.h>
-#include <sensor_msgs/Range.h>
 
 
 using namespace std; 	using Eigen::Matrix3d;
@@ -48,22 +48,17 @@ class UASControlPlugin : public ModelPlugin
 public: ros::NodeHandle nh;
 public: std::string linkName, namespc;
 public: ros::Publisher  velocity_pub;
-public: ros::Subscriber keyper_sub, kinova_sub, gear_sub, aruco_sub, bumper_sub;
+public: ros::Subscriber keyper_sub, kinova_sub, gear_sub;
 public: double des_x,des_y,des_z,des_yaw ;
+public: bool Land, ready_to_land;
 public: Eigen::VectorXd q_desired;
 public: Eigen::VectorXd prev_error;
-public: bool Land, ready_to_land;
 public: double manipulator_bool, gear_bool;	
 public: double mx_hat,my_hat,mz_hat, nx, ny, nz;
-public: Eigen::Vector3d drone_pos ;
-public: Eigen::Quaterniond drone_rot ;
 public: Eigen::Vector3d prev_Perr;
-public: double time,prev_time,fingers;
-public: double take_off_complete, landing_gear_retracted, system_armed, robot_ready;
-public: int aruco_counter ;
 public: double land_time;
-public: Eigen::Vector3d object;
-public: int ticker ; 
+public: double time,prev_time,fingers;
+public: double take_off_complete, landing_gear_retracted, system_armed;
 public: physics::JointPtr gear1, gear2;
 private: physics::ModelPtr model;
 private: event::ConnectionPtr updateConnection;
@@ -78,40 +73,16 @@ public: void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 		system_armed = 0;
 		take_off_complete = 0;
 		landing_gear_retracted = 0;
-		robot_ready = 0;
 		Land = false;
 		ready_to_land = false;
-		land_time = 0.0;
-		ticker = 0;
 
-		Eigen::VectorXd temp(7), tester(7);
-		tester << 0,2.8,0.4,3.14,0.2,3.6,0.6 ;
-		temp << 1.57,1.8,0,4.4,0,4.71,1.57 ;
+		Eigen::VectorXd temp(7);
+		temp << 1.57,1.7,0,4.4,0,4.71,0 ;
 		q_desired = temp;
 		temp << 0,0,0,0,0,0,0 ;
 		prev_error = temp ;
 		prev_Perr << 0,0,0;
-		
-		aruco_counter = 0;
-		object << 0, 0, 0;
-		
-		std::ofstream ufile;
-		ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/UAV.txt");
-		ufile << "TIME, x, y, z, roll, pitch, yaw \n";
-		ufile.close();
-
-		ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/ROBOT.txt");
-		ufile << "TIME, q1, q2, q3, q4, q5, q6, q7, finger1, finger2, finger3 \n";
-		ufile.close();
-
-		ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/RANGE_FINDER.txt");
-		ufile << "TIME, d \n";
-		ufile.close();
-
-		ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/ADAPTS.txt");
-		ufile << "TIME, mhat, nxhat, nyhat, gx, gy, gz \n";
-		ufile.close();
-
+	
 		
 		if(_sdf->HasElement("linkName"))
 			linkName = _sdf->GetElement("linkName")->Get<std::string>();
@@ -145,16 +116,12 @@ public: void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 		std::string keypTopic = namespc + "/teleoperator" ;
 		std::string kinoTopic = namespc + "/kinovaOper" ;
 		std::string gearTopic = namespc + "/joint_info";
-		std::string arucoTopic = namespc + "/aruco_estimate" ;
-		std::string bumperTopic = "/ranger" ; 
  
 		velocity_pub = nh.advertise<mav_msgs::Actuators>(mototopic, 1);
 		keyper_sub = nh.subscribe(keypTopic, 1, &UASControlPlugin::keyper_callback, this);	
 		kinova_sub = nh.subscribe(kinoTopic, 1, &UASControlPlugin::kinova_callback, this);
 		gear_sub = nh.subscribe(gearTopic, 1, &UASControlPlugin::gear_callback, this);
-		aruco_sub = nh.subscribe(arucoTopic, 1, &UASControlPlugin::aruco_callback, this);
-		bumper_sub = nh.subscribe(bumperTopic, 1, &UASControlPlugin::bumper_callback, this);
-	
+
     	this->updateConnection = event::Events::ConnectWorldUpdateBegin(std::bind(&UASControlPlugin::onUpdate, this));
 		
 
@@ -169,22 +136,9 @@ public:	void onUpdate()
 			prev_time = 0;
 		}
 		
-		if(!system_armed){
-			if(time>0.1){
-				system_armed = 1;
-				std::cout << "\nAll Systems Ready... \n   Initiating Take-Off" << std::endl;
-				std::cout << "\nTeleoperation Services have been temporarily disabled" << std::endl;
-			}
-		}		
-		
 		
 		// GET THE POINTER TO THE AERIAL VEHICLE BODY  //
 		physics::LinkPtr  quad = this->model->GetLink(linkName);
-		
-		std::random_device rd{};
-    	std::mt19937 gen{rd()};
-    	std::normal_distribution<> noise_{0,0.03};
-		
 		
 		std::string kinova_prefix = namespc + "::j2s7s300_joint_" ;
 		std::string finger_prefix = namespc + "::j2s7s300_joint_finger_" ;
@@ -219,13 +173,19 @@ public:	void onUpdate()
 			foundpose.robot_q = angs;
 			foundpose.robot_qdot = angd;
 		}		
-		// GET THE POSITION, ORIENTATION, ANGULAR-VELOCITY AND LINEAR-VELOCITY OF THE QUADROTOR  //
 		gazebo::math::Pose pose = quad->GetWorldPose();  		
 		gazebo::math::Vector3 ang_vel = quad->GetRelativeAngularVel();	
 		gazebo::math::Vector3 lin_vel = quad->GetRelativeLinearVel();			
 		gazebo::math::Vector3 position = pose.pos;
 		gazebo::math::Quaternion quatern = pose.rot;
 
+		if(!system_armed){
+			if(my_abs(foundpose.robot_q(3)-q_desired(3))<1e-1){
+				system_armed = 1;
+				std::cout << "\nAll Systems Ready... \n   Initiating Take-Off" << std::endl;
+				std::cout << "\nTeleoperation Services have been temporarily disabled" << std::endl;
+			}
+		}		
 		
 		foundpose.position = Eigen::Vector3d(position.x , position.y , position.z);	
 
@@ -244,30 +204,11 @@ public:	void onUpdate()
 		}
 		gazebo::math::Vector3 rpy = quatern.GetAsEuler();	// we need both versions of the quaternion (Eigen::Quaterniond and gazebo::math::Quaternion) and we need them normalized
 									// the reason is that the Eigen one is optimal for control later, the gazebo one is foolproof for transforming to RPY
-		foundpose.orientation << rpy.x + noise_(gen) , rpy.y + noise_(gen) , rpy.z + noise_(gen) ;	// found the RPY orientation
+		foundpose.orientation << rpy.x , rpy.y , rpy.z ;	// found the RPY orientation
 
 		foundpose.velocity = Eigen::Vector3d(lin_vel.x, lin_vel.y, lin_vel.z);	// found the linear velocity
 
 		foundpose.angular_rate = Eigen::Vector3d(ang_vel.x, ang_vel.y, ang_vel.z);	// found the angular velocity
-
-		drone_pos << position.x, position.y, position.z ;
-		drone_rot = foundpose.quatern ;
-		
-		std::ofstream ufile;
-	  	ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/UAV.txt", std::ios::out | std::ios::app);
-	    ufile << time << ", " << position.x << ", " << position.y << ", " << position.z << ", " << foundpose.orientation(0) << ", " << foundpose.orientation(1) << ", " << foundpose.orientation(2) << "\n" ;
-	    ufile.close();	
-
-	  	ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/ROBOT.txt", std::ios::out | std::ios::app);
-	    ufile << time << ", " << foundpose.robot_q(0) << ", " << foundpose.robot_q(1) << ", " << foundpose.robot_q(2) << ", " << foundpose.robot_q(3) << ", " << foundpose.robot_q(4) << ", " << foundpose.robot_q(5) << ", " << foundpose.robot_q(6) << ", " << foundpose.gripper(0) << ", " << foundpose.gripper(1) << ", " << foundpose.gripper(2) << "\n" ;
-	    ufile.close();	
-
-		
-		if(take_off_complete && aruco_counter==-1 && !robot_ready){
-			Eigen::VectorXd temp(7);
-			temp << 1.57, 2.6725, 0.0, 4.749, 0.0, 2.616, 1.57;
-			q_desired = temp ;
-		}
 
 		if(Land){
 			Eigen::VectorXd temp(7);
@@ -277,7 +218,8 @@ public:	void onUpdate()
 				des_z = des_z - 0.0002 ; 
 			}
 		}
-				
+		
+		
 		Eigen::VectorXd torques(7);
 		if(manipulator_bool){
 			kinova_control(foundpose,&torques);
@@ -303,8 +245,6 @@ public:	void onUpdate()
 		prev_time = time;
 		
 	}
-
-
 
 public: double my_norm( gazebo::math::Quaternion& quat )
 	{
@@ -338,14 +278,6 @@ public: void kinova_control(DerivedPose foundpose,Eigen::VectorXd* torques)
 		Eigen::VectorXd angvel = foundpose.robot_qdot;
 		Eigen::Vector3d orient = foundpose.orientation;
 		Eigen::VectorXd temp_tau(7);
-		
-		if(!robot_ready && aruco_counter==-1 && take_off_complete && my_abs(angles(5)-q_desired(5))<2e-1 && my_abs(angvel(1))<3e-2 && my_abs(angvel(3))<3e-2 && my_abs(angvel(5))<3e-2){
-			robot_ready = 1;
-			Eigen::Vector3d tip ;
-			tip << 0.0, 0.6, -0.41; 
-			des_x = object[0]-tip[0];	des_y = object[1]-tip[1]-0.004;	 des_z = object[2]-tip[2]-0.094;
-			std::cout << des_y << " , " << des_z << std::endl;
-		}
 		
 		Eigen::VectorXd p_gains(7),d_gains(7),i_gains(7);
 		p_gains << 3,140,17,160,28,180,10;
@@ -385,7 +317,7 @@ public: double integral(double error,double prev_error)
 
 public: void calc_n_publish(DerivedPose foundpose, double z_moment)
 	{
-
+		
 		double desired[8]={des_x,0.0,des_y,0.0,des_z,0.0,des_yaw,0.0}; 		 
 		Eigen::VectorXd rotor_velocities(8);
 		computeQuadControl(foundpose, desired, z_moment, &rotor_velocities);	
@@ -438,12 +370,9 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 																	   // in the body frame as far as orientation and angular velocity and acceleration are concerned.
 
 		if(!take_off_complete){
-			if( (z>1.2) && my_abs(z_d)<2e-2 ){
+			if( (z>1.95) && my_abs(z_d)<3e-2 ){
 				take_off_complete = 1;
-				std::cout << "\nTake Off Completed Successfully... \n " << std::endl;
-				if(!landing_gear_retracted){
-					std::cout << "Retracting Landing Gear \n " << std::endl;
-				}
+				std::cout << "\nTake Off Completed Successfully... \n   Retracting Landing Gear" << std::endl;
 			}
 		}
 
@@ -456,20 +385,14 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 		phiddes = 0;			    thetaddes = 0;				psiddes = desiredState[7];	
 
 		//  constants //
-		double m_manip;
-		if(manipulator_bool)
-			m_manip = 5.5;
-		else
-			m_manip = 0.0;
-		double mass = 14.7 + 0.095 + m_manip;  // mass of each rotor is 0.01 plus mass of the IMU which is 0.015 
 		double grav = 9.81;
 		double Ixx=1.57;	double Iyy=3.93;	double Izz=2.59;
 		double xlen = 0.53; double ylen = 0.57;
 
 		//  GAINS //
-		double Kpx=3;   double Kpy=3;   double Kpz=1.3;  
+		double Kpx=3;   double Kpy=3;   double Kpz=1.4;  
 
-		double Kdx=0.7;   double Kdy=0.3;   double Kdz=3; 
+		double Kdx=0.7;   double Kdy=0.7;   double Kdz=3; 
 
 		double Kpph=10;    double Kpth=10;    double Kpps=1; 
 
@@ -477,24 +400,6 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 
 		double Kix=0.2;	double Kiy=0.2;	double Kiz=0.3;
 
-/*		double constU1 = mass/(cos(phi)*cos(theta));
-		double z7 = z - zdes;
-		double p7 = integral(z7,prev_Perr(2));		
-		double z8star = zddes - Kpz*z7;
-		double z8 = z_d - z8star;
-		double U1 =   constU1*(grav - Kpz*(z8 - Kpz*z7) - z7 - Kdz*z8);    
-
-
-		double z9 = x - xdes;
-		double z10star = xddes - Kpx*z9;
-		double z10 = x_d - z10star;
-		double ux = (mass/U1)*(-Kpx*(z10 - Kpx*z9) -z9 -Kdx*z10);
-		
-		double z11 = y - ydes;
-		double z12star = yddes - Kpy*z11;
-		double z12 = y_d - z12star;
-		double uy = (mass/U1)*(-Kpy*(z12 - Kpx*z11) -z11 - Kdy*z12);
-*/
 		double e5 = zdes - z;
 		double p5 = integral(e5,prev_Perr(2));
 		double e6 = Kpz*e5 + zddes + Kiz*p5 - z_d;
@@ -576,12 +481,6 @@ public: void computeQuadControl(DerivedPose foundpose, double desiredState[8], d
 		*rotor_velocities = acc_to_sqvel_matrix * angular_acceleration_thrust ;
 		*rotor_velocities = rotor_velocities->cwiseMax(Eigen::VectorXd::Zero(8));
 		*rotor_velocities = rotor_velocities->cwiseSqrt();  
-		
-		std::ofstream ufile;
-	  	ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/ADAPTS.txt", std::ios::out | std::ios::app);
-	    ufile << time << ", " << mz_hat << ", " << nx << ", " << ny << ", " << tau_g(0) << ", " << tau_g(1) << ", " << tau_g(2)+yaw_mom << "\n" ;
-		ufile.close();
-
 	}
 	
 	
@@ -658,100 +557,6 @@ public: void calculateMatrixM(Eigen::MatrixXd* acc_to_sqvel_matrix)
 	}
 
 
-public: void bumper_callback(const sensor_msgs::Range& msg)
-{
-	std::ofstream ufile;
-  	ufile.open("/home/dc4204/Downloads/thesis_code/testbench/harrier_3DoF/gazebo_results/Visual_Grasping/RANGE_FINDER.txt", std::ios::out | std::ios::app);
-    ufile << time << ", " << msg.range << "\n" ;
-    ufile.close();	
-
-	if(ticker>5){
-		return;
-	}
-	if(msg.range>0.15){
-		return;
-	}else{
-		//GO INTO GRASPING MODE	
-		fingers = 1;
-		ticker++;
-		if(ticker>4){
-			des_y = 0.0;
-			des_z = 1.4;
-		}	
-	}
-		
-}
-
-
-
-public: void aruco_callback( const std_msgs::Float64MultiArray& aruco_msg )
-	{
-		if(!take_off_complete){
-			return;
-		}
-		if(aruco_counter==-1){
-			return;
-		}
-		vector< Eigen::Matrix3d > R_mats ;
-		vector< int > ids ;
-		vector< Eigen::Vector3d > t_vecs;
-	
-		//int cols = aruco_msg.layout.dim[0].size ;  //set to 13: id r11 r12 r13 r21 r22 r23 r31 r32 r33 t1 t2 t3
-		int rows = aruco_msg.layout.dim[1].size ;  //number of markers seen
-		
-		Eigen::Matrix3d R;
-		Eigen::Vector3d t;
-		
-		int count = 0;
-		for (int i = 0 ; i < rows ; i++){ // for every marker
-			// Get the ID
-			int id = (int) aruco_msg.data[count];
-			ids.push_back(id); 
-			
-			// Get the Rotation Matrix
-			for (int k = 0 ; k < 3 ; k++){
-				for (int l = 0 ; l < 3 ; l++){
-					count++;
-					R(k,l) = aruco_msg.data[count];
-				}
-			}
-			R_mats.push_back(R);
-			
-			// Get the Translation Vector
-			for (int m = 0 ; m < 3 ; m++){
-				count++; 
-				t(m) = aruco_msg.data[count];
-				
-			}
-			t_vecs.push_back(t);
-			count++; // to set it up for the next id, no problem if there's not another one, since count is just the iter variable, not the break variable
-		}
-
-		// Only marker with ID-1 is visible here.
-		Eigen::Vector3d Pdw = drone_pos ;
-		Eigen::Matrix3d Rdw = drone_rot.toRotationMatrix();
-		Eigen::Vector3d Pdc_d ;
-		Pdc_d << 0, 0.1, 0.2 ; 
-		Eigen::Matrix3d Rcd ;
-		Rcd << 1.0, 0.0, 0.0, 0.0, cos(-M_PI/2.0 ), -sin( -M_PI/2.0 ), 0.0, sin(-M_PI/2.0), cos(-M_PI/2.0) ;
-		
-		Eigen::Matrix3d Rmc = R ;   // from marker to camera
-		Eigen::Vector3d Pcm_c = t ; // from camera to marker in camera frame
-		Eigen::Vector3d Pmo_m ;
-		Pmo_m << 0.6, 0.0, 0.35 ;   
-		
-		Eigen::Vector3d P_wo = Pdw + Rdw * Pdc_d + Rdw * Rcd * Pcm_c + Rdw * Rcd * Rmc * Pmo_m ;
-		aruco_counter++;
-		object += P_wo ;
-		int num = 30;
-		if(aruco_counter==num){
-			object << object[0]/num, object[1]/num, object[2]/num ;
-			aruco_counter = -1;
-			std::cout << object[0] << " , " << object[1] << " , " << object[2] << std::endl;
-		}
-	}
-
-
 
 public: void keyper_callback(const std_msgs::Int16& keyper_msg)
 	{
@@ -809,10 +614,6 @@ public: void keyper_callback(const std_msgs::Int16& keyper_msg)
 public: void gear_callback(const sensor_msgs::JointState joint_msg)
 	{
 		
-		if(!gear_bool){
-			return;
-		}
-		
 		if(!take_off_complete){
 			return;
 		}
@@ -829,7 +630,7 @@ public: void gear_callback(const sensor_msgs::JointState joint_msg)
 			des2 = des2 - 0.4*(time-land_time);
 			des2 = maxx(0.05,des2);
 		}
-		
+
 		names = joint_msg.name ;
 		angles = joint_msg.position ;
 		rates = joint_msg.velocity ;
@@ -867,6 +668,7 @@ public: void gear_callback(const sensor_msgs::JointState joint_msg)
 				ready_to_land = true;
 			}
 		}
+
 			
 		double Kp = 3.5 ;
 		double Kd = 0.14 ;
