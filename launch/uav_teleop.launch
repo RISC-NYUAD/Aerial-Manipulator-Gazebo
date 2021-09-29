@@ -8,6 +8,7 @@
 						Up-Down keys   :  Vehicle Altitude
 						w - s   keys   :  World-Frame X Position
 						a - d   keys   :  World-Frame Y Position
+						b	key    :  Autonomous Landing (The Aerial Manipulator retracts the Kinova, opens the Landing Gear and lands.) 
 		IMPORTANT:
 				To close the teleoperator, press the 'q' key. This way you can close the teleoperator and keep keyboard access to that terminal window.
 				Simply pressing Ctrl+C will either not work, or you will have to also close the window, as keyboard access is lost with the teleoperator
