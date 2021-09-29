@@ -1,9 +1,3 @@
-/*
-   Created by: Dimitris Chaikalis, dimitris.chaikalis@nyu.edu
-     loosely based on the turtlesim package keyboard teleoperators
-*/
-
-
 #include <iostream>
 #include <termios.h>
 #include <stdio.h>
@@ -103,6 +97,13 @@ void keyloop(int fd, ros::Publisher& my_key_publisher){
 					my_key_publisher.publish(msg);
 					puts("Going Y backward");
 					break;
+				case 'b':
+					code = 9;
+					msg.data = code;
+					my_key_publisher.publish(msg);
+					puts("Land");
+					break;
+
 			}
 
 			loop_rate.sleep();		
